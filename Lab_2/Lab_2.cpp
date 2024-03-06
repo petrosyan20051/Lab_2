@@ -91,9 +91,27 @@ int main()
 				}
 			}
 
+			bool error = false;
 			string filename;
-			cout << "Введите двоичное имя файла: " << endl;
-			cin >> filename;
+			do
+			{ 
+				cout << "Введите двоичное имя файла: " << endl;
+				cin >> filename;
+				for (size_t index = 0, count = 0; index < filename.find('.'); index++)
+				{
+					if (filename[index] == '1' || filename[index] == '0')
+						count++;
+					else
+					{
+						cout << "Некорректное имя файла!";
+						error = true;
+						break;
+					}
+				}
+			} while(error)
+			
+			
+
 		}
 
 
