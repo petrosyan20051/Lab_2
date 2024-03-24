@@ -1,20 +1,26 @@
 ﻿#include <iostream>
-#include <Windows.h>
+#include <windows.h>
 #include <filesystem>
 #include <errno.h>
 #include <cstdlib>
 #include <string>
 #include <sstream>
 #include <algorithm>
+#include <conio.h>
+#include <fstream>
 
 using namespace std;
+using namespace filesystem;
 
 int main()
 {
 	SetConsoleCP(1251);
 	SetConsoleOutputCP(1251);
 
+	typedef double elemType;
+
 	unsigned short int action;
+	string temp;
 
 	do
 	{
@@ -24,9 +30,11 @@ int main()
 			<< "3. Вывести исходные данные\n"
 			<< "4. Обработать данные\n"
 			<< "5. Завершить работу с программой" << endl;
-		cin >> action;
+		cin >> temp;
+		istringstream iss(temp);
+		iss >> action;
 
-		if (cin.fail())
+		if (iss.fail())
 		{
 			cout << "Введено некорректное значение!\n"
 				<< "Код ошибки:" << errno << endl;
@@ -34,26 +42,28 @@ int main()
 			_set_errno(0);
 			continue;
 		}
-		else if (action == 0 || action > 5)
+		else if ((int) action <= 0 || (int) action > 5)
 		{
 			cout << "Введено некорректное значение!\n";
 			continue;
 		}
 
-		switch (action == 5)
+		switch (action)
 		{
 		case 5:
-			cout << "Работа программы завершена!" << endl;
 			exit(0);
+			_getch();
 			break;
 		case 1:
 			size_t size;
 			do
 			{
 				cout << "Введите количество элементов, которые вы хотите записать: " << endl;
-				cin >> size;
-			} while (cin.fail());
-			
+				cin >> temp;
+				istringstream iss(temp);
+				iss >> size;
+			} while (iss.fail());
+
 			double* arr = new double;
 			try
 			{
@@ -70,51 +80,57 @@ int main()
 
 			string value;
 			double num;
-			
+			size_t i = 0;
+
 			cout << "Поочерёдно вводите значения:\n";
-			for (size_t i = 0; i < size; i++)
+			while (i < size)
 			{
-				cin >> value;
-				replace(value.begin(), value.end(), ',', '.');
-				istringstream iss(value);
+				cin >> temp;
+				replace(temp.begin(), temp.end(), ',', '.');
+				istringstream iss(temp);
 				iss >> num;
 				if (iss.fail())
+					cout << "Обнаружено некорректное значение. Попробуйте ещё раз!" << endl;
+				else
 				{
-					iss.clear();
-					int position = iss.tellg();
-					char c = iss.peek();
-					cout << "Файл содержит некорректное значение: \"" << value << "\"\n"
-						<< "Некорректный символ последовательности: \'" << c << "\'\n"
-						<< "Абсолютная позиция некорректного символа последовательности: " << position + 1 << '\n';
-					i--;
-					cout << "Введите значение повторно: ";
+					arr[i] = num;
+					i++;
 				}
 			}
 
-			bool error = false;
-			string filename;
-			do
-			{ 
-				cout << "Введите двоичное имя файла: " << endl;
-				cin >> filename;
-				for (size_t index = 0, count = 0; index < filename.find('.'); index++)
+			string path;
+			bool rewrite = true;
+			cout << "Введите имя двоичного файла: ";
+			cin >> path;
+			if (exists(path))
+			{
+				cout << "Указанный файл уже существует! Желаете перезаписать? ('y' - да, 'n' - нет)";
+				do
 				{
-					if (filename[index] == '1' || filename[index] == '0')
-						count++;
-					else
-					{
-						cout << "Некорректное имя файла!";
-						error = true;
-						break;
-					}
-				}
-			} while(error)
-			
-			
+					cin >> temp;
+				} while (temp != "y" && temp != "n");
 
-		}
+				if (temp == "n")
+					rewrite = false;
+			}
 
+			if (!rewrite)
+				continue;
 
+			ofstream wr;
+			wr.open(path, ios::binary);
+			if (!wr.is_open())
+			{
+				cout << "Файл \"" << path << "\" не открыт, попробуйте ещё раз!\n"
+					<< "Код ошибки: " << errno << endl;
+				perror("Системное сообщение об ошибке: ");
+				continue;
+			}
+
+			wr.write((char*)arr, size * sizeof(elemType));
+			system("cls");
+			break;
+		};
 	} while (true);
 
 	return 0;
