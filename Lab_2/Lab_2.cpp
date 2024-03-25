@@ -109,7 +109,7 @@ int main()
 				replace(temp.begin(), temp.end(), ',', '.');
 				istringstream iss(temp);
 				iss >> num;
-				if (iss.fail())
+				if (iss.fail() || !iss.eof())
 					cout << "Обнаружено некорректное значение. Попробуйте ещё раз!" << endl;
 				else
 				{
@@ -168,6 +168,7 @@ int main()
 			cout << "Введите название двоичного файла ('*' для возвращения в меню): ";
 			while (true)
 			{
+				cin.ignore(1, '\n');
 				getline(cin, path);
 				if (path == "*")
 				{
