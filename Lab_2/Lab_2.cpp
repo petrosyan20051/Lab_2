@@ -19,8 +19,8 @@ int main()
 
 	typedef double elemType;
 
-	unsigned short int action;
-	string temp;
+	char action = -1;
+	string temp, path;
 
 	do
 	{
@@ -30,39 +30,52 @@ int main()
 			<< "3. Вывести исходные данные\n"
 			<< "4. Обработать данные\n"
 			<< "5. Завершить работу с программой" << endl;
-		cin >> temp;
-		istringstream iss(temp);
-		iss >> action;
-
-		if (iss.fail())
+		action = _getch();
+		
+		if ((int)action < 49 || (int) action > 53)
 		{
-			cout << "Введено некорректное значение!\n"
-				<< "Код ошибки:" << errno << endl;
-			perror("Системное сообщение об ошибке: ");
-			_set_errno(0);
-			continue;
-		}
-		else if ((int) action <= 0 || (int) action > 5)
-		{
+			system("cls");
 			cout << "Введено некорректное значение!\n";
 			continue;
 		}
 
-		switch (action)
+		if (action == '5')
 		{
-		case 5:
+			system("cls");
 			exit(0);
 			_getch();
 			break;
-		case 1:
+		}
+		else if (action == '1')
+		{
+			system("cls");
 			size_t size;
+			istringstream iss;
+
+			/*
 			do
 			{
-				cout << "Введите количество элементов, которые вы хотите записать: " << endl;
+				cout << "Введите количество значений, которые вы хотите записать: " << endl;
 				cin >> temp;
+				
+				iss.clear();
 				istringstream iss(temp);
 				iss >> size;
-			} while (iss.fail());
+			} while (!iss.eof() && size == 0);
+			*/
+
+			cout << "Введите количество значений, которые вы хотите записать: " << endl;
+			while (true)
+			{
+				cin >> ws >> size;
+				int p = cin.peek();
+				if (p != EOF && p != '\n')
+				{
+					cout << "Введено некорректное значение, попробуйте ещё раз" << endl;
+					cin.clear();
+				}
+				break;
+			}
 
 			double* arr = new double;
 			try
@@ -98,7 +111,6 @@ int main()
 				}
 			}
 
-			string path;
 			bool rewrite = true;
 			cout << "Введите имя двоичного файла: ";
 			cin >> path;
@@ -130,7 +142,16 @@ int main()
 			wr.write((char*)arr, size * sizeof(elemType));
 			system("cls");
 			break;
-		};
+		}
+		else if (action == '2')
+		{
+			/// Сделать проверку целостности читаемых данных...
+
+			system("cls");
+
+		}
+
+
 	} while (true);
 
 	return 0;
