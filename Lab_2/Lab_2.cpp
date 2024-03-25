@@ -12,6 +12,12 @@
 using namespace std;
 using namespace filesystem;
 
+// Задачи:
+/// 1. Сделать проверку целостности читаемых данных (п2)
+/// 2. Сделать возможность выхода на предыдущий пункт меню (п1, п2, п3, п4, п5)
+/// 3. Узнать, почему в п1 wr записывает "мусорные" значения в файл и исправить это
+
+
 int main()
 {
 	SetConsoleCP(1251);
@@ -20,7 +26,7 @@ int main()
 	typedef double elemType;
 
 	char action = -1;
-	string temp, path;
+	string temp;
 
 	do
 	{
@@ -43,7 +49,6 @@ int main()
 		{
 			system("cls");
 			exit(0);
-			_getch();
 			break;
 		}
 		else if (action == '1')
@@ -68,22 +73,24 @@ int main()
 			while (true)
 			{
 				cin >> ws >> size;
-				int p = cin.peek();
+				streampos p = cin.peek();
 				if (p != EOF && p != '\n')
 				{
 					cout << "Введено некорректное значение, попробуйте ещё раз" << endl;
 					cin.clear();
+					continue;
 				}
 				break;
 			}
 
-			double* arr = new double;
+			double* out = new double;
 			try
 			{
-				arr = new double[size];
+				out = new double[size];
 			}
 			catch (bad_alloc)
 			{
+				delete out;
 				cout << "Ошибка выделения памяти!\n"
 					<< "Код ошибки: " << errno << endl;
 				perror("Системное сообщение об ошибке: ");
@@ -106,17 +113,18 @@ int main()
 					cout << "Обнаружено некорректное значение. Попробуйте ещё раз!" << endl;
 				else
 				{
-					arr[i] = num;
+					out[i] = num;
 					i++;
 				}
 			}
 
 			bool rewrite = true;
+			string path;
 			cout << "Введите имя двоичного файла: ";
 			cin >> path;
 			if (exists(path))
 			{
-				cout << "Указанный файл уже существует! Желаете перезаписать? ('y' - да, 'n' - нет)";
+				cout << "Указанный файл уже существует! Желаете перезаписать? ('y' - да, 'n' - нет): ";
 				do
 				{
 					cin >> temp;
@@ -139,16 +147,78 @@ int main()
 				continue;
 			}
 
-			wr.write((char*)arr, size * sizeof(elemType));
+			wr.write((char*)out, size * sizeof(elemType));
+
+			/*
+			ifstream ex;
+			ex.open(path, ios::binary);
+			double exa;
+			ex >> exa; cout << exa << endl;
+			*/
+			wr.close();
 			system("cls");
-			break;
 		}
 		else if (action == '2')
 		{
-			/// Сделать проверку целостности читаемых данных...
-
 			system("cls");
 
+			ifstream rd;
+			bool ret = false;
+			string path;
+			cout << "Введите название двоичного файла ('*' для возвращения в меню): ";
+			while (true)
+			{
+				getline(cin, path);
+				if (path == "*")
+				{
+					ret = true;
+					break;
+				}
+				// Пытаемся открыть поток. В случае успеха используем побитовое "или" для флагов ios::binary и ios::ate (перемещение указателя за пределы файла) 
+				rd.open(path, ios::binary | ios::ate);
+				if (!rd.is_open())
+				{
+					cout << "Не удалось открыть файл! Попробуйте ещё раз." << endl;
+					continue;
+				}
+				break;
+			}
+
+			if (ret)
+				continue;
+			// Находим длину последовательности двоичных символов
+			size_t len = rd.tellg();
+			elemType* in;
+			try
+			{
+				in = new elemType[len];
+			}
+			catch (bad_alloc)
+			{
+				cout << "Ошибка выделения памяти!\n"
+					<< "Код ошибки: " << errno << endl;
+				perror("Системное сообщение об ошибке: ");
+				_set_errno(0);
+				continue;
+			}
+			rd.read((char*)in, len);
+			rd.close();
+
+			// Находим: 1. Максимальную длину между наибольшим порядковым номером числа и строки "Номер |" (7)
+			//			2. Максимальную длину прочитанных значений
+			size_t max_order = max(to_string(len).length(), 7),
+				   max_number = 0;
+
+			rd.seekg(0);
+			for (size_t i = 0; i < len / sizeof(elemType); i++)
+				if (to_string(in[i]).length() > max_number)
+					max_number = to_string(in[i]).length();
+
+			// Выводим массив значений
+			cout << setw(max_order) << "Номер |" << setw(max_number) << "Значение" << endl;
+			for (size_t i = 0; i < len / sizeof(elemType); i++)
+				cout << setw(max_order) << i + 1 << setw(max_number) << in[i] << endl;
+			delete [] in;
 		}
 
 
