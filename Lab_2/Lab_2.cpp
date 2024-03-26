@@ -149,12 +149,14 @@ int main()
 
 			wr.write((char*)out, size * sizeof(elemType));
 
-			/*
+			/**/
 			ifstream ex;
 			ex.open(path, ios::binary);
-			double exa;
-			ex >> exa; cout << exa << endl;
-			*/
+			elemType* exa = new elemType[2];
+			ex.read((char*)exa, 2 * sizeof(elemType));
+			cout << exa[0] << ' ' << exa[1] << endl;
+			
+			
 			wr.close();
 			system("cls");
 		}
