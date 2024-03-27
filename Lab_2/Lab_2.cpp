@@ -52,9 +52,9 @@ int main()
 
 	char action = -1;
 	string temp;
-	bool ret = false;
+	bool ret = false, bool rewrite = false;
 
-	elemType* in, *out;
+	elemType* arr;
 	
 	do
 	{
@@ -110,8 +110,10 @@ int main()
 				continue;
 			}
 
-			out = new (nothrow) elemType[size];
-			if (out == nullptr)
+			if (rewrite)
+				delete[] arr;
+			arr = new (nothrow) elemType[size];
+			if (arr == nullptr)
 			{
 				cout << "Ошибка выделения памяти!\n"
 					<< "Код ошибки: " << errno << endl;
@@ -130,7 +132,7 @@ int main()
 				{
 					if (cin.peek() == '*' && cin.rdbuf()->in_avail() == 2)
 					{
-						delete[] out;
+						delete[] arr;
 						system("cls");
 						cin.ignore(cin.rdbuf()->in_avail());
 						ret = true;
@@ -144,7 +146,7 @@ int main()
 						cout << "Обнаружено некорректное значение. Попробуйте ещё раз!" << endl;
 					else
 					{
-						out[i] = num;
+						arr[i] = num;
 						i++;
 					}
 				}
@@ -194,9 +196,9 @@ int main()
 			size_t buffer[1]; buffer[0] = size;
 
 			wr.write((char*)buffer, sizeof(size_t));
-			wr.write((char*)out, size * sizeof(elemType));
+			wr.write((char*)arr, size * sizeof(elemType));
+			rewrite = true;
 			wr.close();
-			
 
 			system("cls");
 		}
@@ -250,21 +252,27 @@ int main()
 			{
 				rd.close();
 				cout << "Файл повреждён!" << endl;
+				cout << "Нажмите любую клавишу для продолжения: " << endl;
+				_getch();
 				continue;
 			}
 
-			elemType* in = new elemType[file_len / sizeof(elemType)];
-			if (in == nullptr)
+			if (rewrite)
+				delete[] arr;
+			arr = new elemType[file_len / sizeof(elemType)];
+			if (arr == nullptr)
 			{
 				rd.close();
 				cout << "Ошибка выделения памяти!\n"
 					<< "Код ошибки: " << errno << endl;
 				perror("Системное сообщение об ошибке: ");
+				cout << "Нажмите любую клавишу для продолжения: " << endl;
+				_getch();
 				_set_errno(0);
 				continue;
 			}
 
-			rd.read((char*)in, file_len);
+			rd.read((char*)arr, file_len);
 			rd.close();
 
 			// Находим: 1. Максимальную длину между наибольшим порядковым номером числа и строки "Номер" (5)
@@ -273,23 +281,25 @@ int main()
 				max_number = 0;
 
 			for (size_t i = 0; i < file_len / sizeof(elemType); i++)
-				if (to_string(in[i]).length() > max_number)
-					max_number = to_string(in[i]).length();
+				if (to_string(arr[i]).length() > max_number)
+					max_number = to_string(arr[i]).length();
 
 			// Выводим массив значений
 			cout << setw(max_order) << "Номер" << " |" << setw(max_number) << "Значение" << endl;
 			for (size_t i = 0; i < file_len / sizeof(elemType); i++)
-				cout << setw(max_order) << i + 1 << " |" << setw(max_number) << in[i] << endl;
-			delete[] in;
+				cout << setw(max_order) << i + 1 << " |" << setw(max_number) << arr[i] << endl;
+			rewrite = true;
 		}
 
 		else if (action == '3')
 		{
+			system("cls");
 			/// Неясна реализация кода для работы с динамическими массивами
 		}
 
 		else if (action == '4')
 		{
+			system("cls");
 			/// Неясна реализация кода для работы с динамическими массивами
 			/// Реализация обработки массивов в целом понятна
 		}
