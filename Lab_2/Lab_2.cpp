@@ -38,7 +38,6 @@ using namespace filesystem;
 /// 3. Узнать, почему в п1 wr записывает "мусорные" значения в файл и исправить это
 /// 4. Спросить у Кирилла Александровича:
 ///		1. Как реализовать п3 и п4 - как создать возможность использовать динамические массивы из п1 и п2, если у них ограниченная видимость?
-///		2.
 
 
 int main()
@@ -50,8 +49,12 @@ int main()
 
 
 	typedef double elemType;
+
 	char action = -1;
 	string temp;
+	bool ret = false;
+
+	elemType* in, *out;
 	
 	do
 	{
@@ -72,25 +75,42 @@ int main()
 
 		if (action == '1')
 		{
-			system("cls");
-
-			size_t size = 0;
-			istringstream iss;
-			cout << "Введите количество значений, которые вы хотите записать ('*' для возвращения в меню): " << endl;
-			while (size <= 0)
+			size_t size;
+			while (true)
 			{
-				cin >> ws >> size;
-				char p = cin.peek();
-				if (p != '\n')
+				system("cls");
+
+				cout << "Введите количество значений, которые вы хотите записать ('*' для возврата в меню): ";
+			
+				cin.ignore(cin.rdbuf()->in_avail());
+				if (cin.peek() == '*' && cin.rdbuf() -> in_avail() == 2)
 				{
-					cout << "Введено некорректное значение, попробуйте ещё раз!" << endl;
+					cin.ignore(cin.rdbuf()->in_avail());
+					ret = true;
+					break;
+				}
+
+				cin >> size;
+				if (cin.peek() != '\n')
+				{
+					cout << "Введено некорректное значение, попробуйте ещё раз!\n"
+						<< "Нажмите любую клавишу для продолжения работы" << endl;
+					_getch();
+					size = 0;
 					cin.clear();
+					cin.ignore(cin.rdbuf()->in_avail());
 					continue;
 				}
+				cin.ignore(cin.rdbuf()->in_avail());
 				break;
 			}
+			if (ret)
+			{
+				system("cls");
+				continue;
+			}
 
-			elemType* out = new (nothrow) elemType[size];
+			out = new (nothrow) elemType[size];
 			if (out == nullptr)
 			{
 				cout << "Ошибка выделения памяти!\n"
@@ -105,9 +125,17 @@ int main()
 
 			if (size)
 			{
-				cout << "Поочерёдно вводите значения:\n";
+				cout << "Поочерёдно вводите значения ('*' для выхода в меню):\n";
 				while (i < size)
 				{
+					if (cin.peek() == '*' && cin.rdbuf()->in_avail() == 2)
+					{
+						delete[] out;
+						system("cls");
+						cin.ignore(cin.rdbuf()->in_avail());
+						ret = true;
+						break;
+					}
 					cin >> temp;
 					replace(temp.begin(), temp.end(), ',', '.');
 					istringstream iss(temp);
@@ -122,27 +150,36 @@ int main()
 				}
 			}
 			
-
-			bool rewrite = true;
-			string path;
-			cout << "Введите имя двоичного файла: ";
-
-			cin.ignore(1, '\n');
-			getline(cin, path);
-			if (exists(path))
-			{
-				cout << "Указанный файл уже существует! Желаете перезаписать? ('y' - да, 'n' - нет): ";
-				do
-				{
-					cin >> temp;
-				} while (temp != "y" && temp != "n");
-
-				if (temp == "n")
-					rewrite = false;
-			}
-
-			if (!rewrite)
+			if (ret)
 				continue;
+
+			string path;
+			while (true)
+			{
+				cin.ignore(cin.rdbuf() -> in_avail());
+				cout << "Введите имя двоичного файла: ";
+				getline(cin, path);
+				if (exists(path))
+				{
+					cout << "Указанный файл уже существует! Желаете перезаписать? ('y' - да, 'n' - нет, '*' - вернуться меню): ";
+					do
+					{
+						temp = _getch();
+					} while (temp != "y" && temp != "n" && temp != "*");
+				}
+				if (temp == "y")
+					break;
+				else if (temp == "*")
+				{
+					ret = true;
+					break;
+				}
+				cout << endl;
+			} 
+			
+			if (ret)
+				continue;
+
 
 			ofstream wr;
 			wr.open(path, ios::binary);
@@ -154,8 +191,7 @@ int main()
 				continue;
 			}
 
-			size_t buffer[1];
-			buffer[0] = size;
+			size_t buffer[1]; buffer[0] = size;
 
 			wr.write((char*)buffer, sizeof(size_t));
 			wr.write((char*)out, size * sizeof(elemType));
@@ -170,7 +206,6 @@ int main()
 			system("cls");
 
 			ifstream rd;
-			bool ret = false;
 			string path;
 			cout << "Введите название двоичного файла ('*' для возвращения в меню): ";
 			while (true)
@@ -181,7 +216,7 @@ int main()
 					ret = true;
 					break;
 				}
-				// Пытаемся открыть поток. В случае успеха используем побитовое "или" для флагов ios::binary
+				// Пытаемся открыть поток
 				rd.open(path, ios::binary);
 				if (!rd.is_open())
 				{
@@ -199,6 +234,7 @@ int main()
 			rd.read((char*)count_value, sizeof(size_t));
 			if (!*count_value)
 			{
+				rd.close();
 				cout << "Файл пуст!" << endl;
 				continue;
 			}
@@ -212,6 +248,7 @@ int main()
 
 			if (file_len % sizeof(elemType) || *count_value != file_len / sizeof(elemType))
 			{
+				rd.close();
 				cout << "Файл повреждён!" << endl;
 				continue;
 			}
@@ -219,6 +256,7 @@ int main()
 			elemType* in = new elemType[file_len / sizeof(elemType)];
 			if (in == nullptr)
 			{
+				rd.close();
 				cout << "Ошибка выделения памяти!\n"
 					<< "Код ошибки: " << errno << endl;
 				perror("Системное сообщение об ошибке: ");
