@@ -77,11 +77,10 @@ int main()
 
 				cout << "Введите количество значений, которые вы хотите записать ('*' для возврата в меню): ";
 
-				cin.ignore(cin.rdbuf()->in_avail());
-				if (cin.peek() == '*' && cin.rdbuf()->in_avail() == 2)
+				if ((cin.ignore(cin.rdbuf()->in_avail())).peek() == '*')
 				{
-					cin.ignore(cin.rdbuf()->in_avail());
 					ret = true;
+					//cin.ignore(cin.rdbuf()->in_avail());
 					break;
 				}
 
@@ -91,16 +90,15 @@ int main()
 					cout << "Введено некорректное значение, попробуйте ещё раз!\n"
 						<< "Нажмите любую клавишу для продолжения работы" << endl;
 					_getch();
-					size = 0;
 					cin.clear();
-					cin.ignore(cin.rdbuf()->in_avail());
+					//cin.ignore(cin.rdbuf()->in_avail());
 					continue;
 				}
-				cin.ignore(cin.rdbuf()->in_avail());
 				break;
 			}
 			if (ret)
 			{
+				ret = false;
 				system("cls");
 				continue;
 			}
@@ -125,20 +123,23 @@ int main()
 				cout << "Поочерёдно вводите значения ('*' для выхода в меню):\n";
 				while (i < size)
 				{
-					if (cin.peek() == '*' && cin.rdbuf()->in_avail() == 2)
+					cin >> temp;
+					if (temp == "*")
 					{
 						delete[] arr;
 						system("cls");
-						cin.ignore(cin.rdbuf()->in_avail());
+						//cin.ignore(cin.rdbuf()->in_avail());
 						ret = true;
 						break;
 					}
-					cin >> temp;
 					replace(temp.begin(), temp.end(), ',', '.');
 					istringstream iss(temp);
 					iss >> num;
 					if (iss.fail() || !iss.eof())
+					{
+						//cin.ignore(cin.rdbuf()->in_avail());
 						cout << "Обнаружено некорректное значение. Попробуйте ещё раз!" << endl;
+					}	
 					else
 					{
 						arr[i] = num;
@@ -148,14 +149,17 @@ int main()
 			}
 
 			if (ret)
+			{
+				ret = false;
+				system("cls");
 				continue;
+			}
 
 
 			while (true)
 			{
-				cin.ignore(cin.rdbuf()->in_avail());
-				cout << "Введите имя двоичного файла: ";
-				getline(cin, path);
+				cout << "Введите название двоичного файла ('*' для возвращения в меню): ";
+				getline(cin.ignore(cin.rdbuf()->in_avail()), path);
 				if (exists(path))
 				{
 					cout << "Указанный файл уже существует! Желаете перезаписать? ('y' - да, 'n' - нет, '*' - вернуться меню): ";
@@ -164,29 +168,31 @@ int main()
 						temp = _getch();
 					} while (temp != "y" && temp != "n" && temp != "*");
 				}
-				else
-					break;
-				if (temp == "y")
-					break;
-				else if (temp == "*")
+				if (temp == "*")
 				{
 					ret = true;
+					break;
+				}
+				else if (temp == "y")
+				{
+					ofstream wr;
+					wr.open(path, ios::binary);
+					if (!wr.is_open())
+					{
+						cout << "Файл \"" << path << "\" не открыт, попробуйте ещё раз!\n"
+							<< "Код ошибки: " << errno << endl;
+						perror("Системное сообщение об ошибке: ");
+						continue;
+					}
 					break;
 				}
 				cout << endl;
 			}
 
 			if (ret)
-				continue;
-
-
-			ofstream wr;
-			wr.open(path, ios::binary);
-			if (!wr.is_open())
 			{
-				cout << "Файл \"" << path << "\" не открыт, попробуйте ещё раз!\n"
-					<< "Код ошибки: " << errno << endl;
-				perror("Системное сообщение об ошибке: ");
+				ret = false;
+				system("cls");
 				continue;
 			}
 
@@ -207,7 +213,7 @@ int main()
 			cout << "Введите название двоичного файла ('*' для возвращения в меню): ";
 			while (true)
 			{
-				cin >> ws >> path;
+				cin.ignore(cin.rdbuf()->in_avail()) >> path;
 				if (path == "*")
 				{
 					ret = true;
@@ -289,6 +295,10 @@ int main()
 			for (size_t i = 0; i < size; i++)
 				cout << setw(max_order) << i + 1 << " | " << setw(max_number) << arr[i] << endl;
 			rewrite = true;
+
+			cout << "Введите любую клавишу для продолжения: ";
+			_getch();
+			system("cls");
 		}
 		else if (action == '3')
 		{
@@ -321,6 +331,9 @@ int main()
 				cout << setw(max_order) << i + 1 << " | " << setw(max_number) << arr[i] << endl;
 			rewrite = true;
 
+			cout << "Введите любую клавишу для продолжения: ";
+			_getch();
+			system("cls");
 		}
 		else if (action == '4')
 		{
