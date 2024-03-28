@@ -50,9 +50,11 @@ int main()
 
 	typedef double elemType;
 
-	char action = -1;
-	string temp;
-	bool ret = false, bool rewrite = false;
+	char action;
+	string temp, path;
+	bool ret = false, rewrite = false;
+	ofstream wr;
+	ifstream rd;
 
 	elemType* arr;
 	
@@ -70,7 +72,7 @@ int main()
 
 		switch (action)
 		{
-		case 1:
+		case '1':
 			size_t size;
 			while (true)
 			{
@@ -151,7 +153,7 @@ int main()
 			if (ret)
 				continue;
 
-			string path;
+			
 			while (true)
 			{
 				cin.ignore(cin.rdbuf()->in_avail());
@@ -179,7 +181,7 @@ int main()
 				continue;
 
 
-			ofstream wr;
+
 			wr.open(path, ios::binary);
 			if (!wr.is_open())
 			{
@@ -197,12 +199,10 @@ int main()
 			wr.close();
 
 			system("cls");
-
+			break;
 		case '2':
 			system("cls");
 
-			ifstream rd;
-			string path;
 			cout << "Введите название двоичного файла ('*' для возвращения в меню): ";
 			while (true)
 			{
@@ -283,9 +283,10 @@ int main()
 			for (size_t i = 0; i < file_len / sizeof(elemType); i++)
 				cout << setw(max_order) << i + 1 << " |" << setw(max_number) << arr[i] << endl;
 			rewrite = true;
+			break;
 
 		case '3':
-			system("cls");
+			//system("cls");
 
 			if (arr == nullptr)
 			{
@@ -294,20 +295,28 @@ int main()
 				_getch();
 				break;
 			}
-
+			break;
 		case '4':
-			system("cls");
-			/// Неясна реализация кода для работы с динамическими массивами
-			/// Реализация обработки массивов в целом понятна
+			//system("cls");
+			cout << "Hello";
+			if (!arr)
+			{
+				cout << "Массив отсутствует!\n"
+					<< "Нажмите любую клавишу для продолжения работы программы: ";
+				_getch();
+				system("cls");
+				break;
+			}
+			break;
 
 		case '5':
-			system("cls");
+			//system("cls");
 			exit(0);
 			break;
 		default:
-			system("cls");
+			//system("cls");
 			cout << "Введено некорректное значение!\n";
-			continue;
+			break;
 		}
 	} while (true);
 	
