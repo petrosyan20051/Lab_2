@@ -66,24 +66,20 @@ int main()
 			<< "5. Завершить работу с программой" << endl;
 		action = _getch();
 
-		if ((int)action < 49 || (int)action > 53)
-		{
-			system("cls");
-			cout << "Введено некорректное значение!\n";
-			continue;
-		}
 
-		if (action == '1')
+
+		switch (action)
 		{
+		case 1:
 			size_t size;
 			while (true)
 			{
 				system("cls");
 
 				cout << "Введите количество значений, которые вы хотите записать ('*' для возврата в меню): ";
-			
+
 				cin.ignore(cin.rdbuf()->in_avail());
-				if (cin.peek() == '*' && cin.rdbuf() -> in_avail() == 2)
+				if (cin.peek() == '*' && cin.rdbuf()->in_avail() == 2)
 				{
 					cin.ignore(cin.rdbuf()->in_avail());
 					ret = true;
@@ -151,14 +147,14 @@ int main()
 					}
 				}
 			}
-			
+
 			if (ret)
 				continue;
 
 			string path;
 			while (true)
 			{
-				cin.ignore(cin.rdbuf() -> in_avail());
+				cin.ignore(cin.rdbuf()->in_avail());
 				cout << "Введите имя двоичного файла: ";
 				getline(cin, path);
 				if (exists(path))
@@ -177,8 +173,8 @@ int main()
 					break;
 				}
 				cout << endl;
-			} 
-			
+			}
+
 			if (ret)
 				continue;
 
@@ -201,10 +197,8 @@ int main()
 			wr.close();
 
 			system("cls");
-		}
 
-		else if (action == '2')
-		{
+		case '2':
 			system("cls");
 
 			ifstream rd;
@@ -289,28 +283,32 @@ int main()
 			for (size_t i = 0; i < file_len / sizeof(elemType); i++)
 				cout << setw(max_order) << i + 1 << " |" << setw(max_number) << arr[i] << endl;
 			rewrite = true;
-		}
 
-		else if (action == '3')
-		{
+		case '3':
 			system("cls");
-			/// Неясна реализация кода для работы с динамическими массивами
-		}
 
-		else if (action == '4')
-		{
+			if (arr == nullptr)
+			{
+				cout << "Массив отсутствует!\n"
+					<< "Нажмите на любую клавишу для продолжения работы";
+				_getch();
+				break;
+			}
+
+		case '4':
 			system("cls");
 			/// Неясна реализация кода для работы с динамическими массивами
 			/// Реализация обработки массивов в целом понятна
-		}
 
-		else if (action == '5')
-		{
+		case '5':
 			system("cls");
 			exit(0);
 			break;
+		default:
+			system("cls");
+			cout << "Введено некорректное значение!\n";
+			continue;
 		}
-
 	} while (true);
 	
 	return 0;
