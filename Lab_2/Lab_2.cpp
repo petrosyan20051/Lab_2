@@ -53,10 +53,10 @@ int main()
 	char action;
 	string temp, path;
 	bool ret = false, rewrite = false;
-	ofstream wr;
-	ifstream rd;
 
-	elemType* arr;
+	elemType* arr = nullptr;
+	size_t size;
+
 	
 	do
 	{
@@ -69,11 +69,8 @@ int main()
 		action = _getch();
 
 
-
-		switch (action)
+		if (action == '1')
 		{
-		case '1':
-			size_t size;
 			while (true)
 			{
 				system("cls");
@@ -153,7 +150,7 @@ int main()
 			if (ret)
 				continue;
 
-			
+
 			while (true)
 			{
 				cin.ignore(cin.rdbuf()->in_avail());
@@ -167,6 +164,8 @@ int main()
 						temp = _getch();
 					} while (temp != "y" && temp != "n" && temp != "*");
 				}
+				else
+					break;
 				if (temp == "y")
 					break;
 				else if (temp == "*")
@@ -181,7 +180,7 @@ int main()
 				continue;
 
 
-
+			ofstream wr;
 			wr.open(path, ios::binary);
 			if (!wr.is_open())
 			{
@@ -199,10 +198,12 @@ int main()
 			wr.close();
 
 			system("cls");
-			break;
-		case '2':
+		}
+		else if (action == '2')
+		{
 			system("cls");
 
+			ifstream rd;
 			cout << "Введите название двоичного файла ('*' для возвращения в меню): ";
 			while (true)
 			{
@@ -237,12 +238,12 @@ int main()
 
 			// Находим длину последовательности двоичных символов;
 			rd.seekg(0, ios::end);
-			size_t file_len = rd.tellg();
+			size = rd.tellg();
 			// Обновляем её для самой простой проверки кратности последовательности двоичных символов на длину типа данных и проверки совпадения фактического количества значений и указанного в файле
-			file_len -= sizeof(size_t);
+			size -= sizeof(size_t);
 			rd.seekg(sizeof(size_t));
 
-			if (file_len % sizeof(elemType) || *count_value != file_len / sizeof(elemType))
+			if (size % sizeof(elemType) || *count_value != size / sizeof(elemType))
 			{
 				rd.close();
 				cout << "Файл повреждён!" << endl;
@@ -253,7 +254,7 @@ int main()
 
 			if (rewrite)
 				delete[] arr;
-			arr = new elemType[file_len / sizeof(elemType)];
+			arr = new elemType[size / sizeof(elemType)];
 			if (arr == nullptr)
 			{
 				rd.close();
@@ -266,57 +267,126 @@ int main()
 				continue;
 			}
 
-			rd.read((char*)arr, file_len);
+			rd.read((char*)arr, size);
 			rd.close();
+
 
 			// Находим: 1. Максимальную длину между наибольшим порядковым номером числа и строки "Номер" (5)
 			//			2. Максимальную длину прочитанных значений
-			size_t max_order = max(to_string(file_len).length(), 5),
-				max_number = 0;
+			size /= sizeof(elemType);
+			size_t max_order = max(to_string(size).length(), 5),
+				max_number = 8;
 
-			for (size_t i = 0; i < file_len / sizeof(elemType); i++)
-				if (to_string(arr[i]).length() > max_number)
-					max_number = to_string(arr[i]).length();
+			for (size_t i = 0; i < size; i++)
+			{
+				istringstream iss(arr[i]);
+				iss >> temp;
+				if (temp.length() > max_number) max_number = temp.length();
+			}
 
 			// Выводим массив значений
-			cout << setw(max_order) << "Номер" << " |" << setw(max_number) << "Значение" << endl;
-			for (size_t i = 0; i < file_len / sizeof(elemType); i++)
-				cout << setw(max_order) << i + 1 << " |" << setw(max_number) << arr[i] << endl;
+			cout << setw(max_order) << "Номер" << " | " << setw(max_number) << "Значение" << endl;
+			for (size_t i = 0; i < size; i++)
+				cout << setw(max_order) << i + 1 << " | " << setw(max_number) << arr[i] << endl;
 			rewrite = true;
-			break;
-
-		case '3':
-			//system("cls");
+		}
+		else if (action == '3')
+		{
+			system("cls");
 
 			if (arr == nullptr)
-			{
-				cout << "Массив отсутствует!\n"
-					<< "Нажмите на любую клавишу для продолжения работы";
-				_getch();
-				break;
-			}
-			break;
-		case '4':
-			//system("cls");
-			cout << "Hello";
-			if (!arr)
 			{
 				cout << "Массив отсутствует!\n"
 					<< "Нажмите любую клавишу для продолжения работы программы: ";
 				_getch();
 				system("cls");
-				break;
+				continue;
 			}
-			break;
 
-		case '5':
-			//system("cls");
+			// Находим: 1. Максимальную длину между наибольшим порядковым номером числа и строки "Номер" (5)
+			//			2. Максимальную длину прочитанных значений
+			size_t max_order = max(to_string(size).length(), 5),
+				max_number = 8;
+
+			for (size_t i = 0; i < size; i++)
+			{
+				istringstream iss(arr[i]);
+				iss >> temp;
+				if (temp.length() > max_number) max_number = temp.length();
+			}
+
+			// Выводим массив значений
+			cout << setw(max_order) << "Номер" << " | " << setw(max_number) << "Значение" << endl;
+			for (size_t i = 0; i < size; i++)
+				cout << setw(max_order) << i + 1 << " | " << setw(max_number) << arr[i] << endl;
+			rewrite = true;
+
+		}
+		else if (action == '4')
+		{
+			system("cls");
+			if (arr == nullptr)
+			{
+				cout << "Массив отсутствует!\n"
+					<< "Нажмите любую клавишу для продолжения работы программы: ";
+				_getch();
+				system("cls");
+				continue;
+			}
+
+			elemType mx = -9e+99, 
+					 mn = 9e99,
+					 s = 0;
+
+			// Ищем максимальное и минимальное число и сумму все последовательности массива
+			for (size_t i = 0; i < size; i++)
+			{
+				if (arr[i] > mx) mx = arr[i];
+				if (arr[i] < mn) mn = arr[i];
+				s += arr[i];
+			}
+
+			double avg = s / size;
+			cout << "Файл содержит " << size << " значений(-ия, -ие)\n"
+				<< "Максимальное значение = " << mx << '\n'
+				<< "Минимальное значение = " << mn << '\n'
+				<< "Среднее арифметическое ряда = " << avg << endl;
+
+			// Заменяем Pmax и Pmin на avg
+			for (size_t i = 0; i < size; i++)
+			{
+				if (arr[i] == mx) arr[i] = avg;
+				if (arr[i] == mn) arr[i] = avg;
+			}
+
+			// Находим: 1. Максимальную длину между наибольшим порядковым номером числа и строки "Номер" (5)
+			//			2. Максимальную длину прочитанных значений
+			size_t max_order = max(to_string(size).length(), 5),
+				max_number = 8;
+
+			for (size_t i = 0; i < size; i++)
+			{
+				istringstream iss(arr[i]);
+				iss >> temp;
+				if (temp.length() > max_number) max_number = temp.length();
+			}
+
+			// Выводим массив значений
+			cout << setw(max_order) << "Номер" << " | " << setw(max_number) << "Значение" << endl;
+			for (size_t i = 0; i < size; i++)
+				cout << setw(max_order) << i + 1 << " | " << setw(max_number) << arr[i] << endl;
+			rewrite = true;
+		}
+		else if (action == '5')
+		{
+			system("cls");
 			exit(0);
 			break;
-		default:
-			//system("cls");
+		}
+		else
+		{
+			system("cls");
 			cout << "Введено некорректное значение!\n";
-			break;
 		}
 	} while (true);
 	
