@@ -55,7 +55,7 @@ int main()
 	bool ret = false, rewrite = false;
 
 	elemType* arr = nullptr;
-	size_t size;
+	int_least16_t size;
 
 	
 	do
@@ -85,7 +85,7 @@ int main()
 				}
 
 				cin >> size;
-				if (cin.peek() != '\n')
+				if (cin.peek() != '\n' || size < 1)
 				{
 					cout << "Введено некорректное значение, попробуйте ещё раз!\n"
 						<< "Нажмите любую клавишу для продолжения работы" << endl;
@@ -116,29 +116,29 @@ int main()
 			elemType num;
 			size_t i = 0;
 
-			if (size)
+			cout << "Поочерёдно вводите значения ('*' для выхода в меню):\n";
+			while (i < size)
 			{
-				cout << "Поочерёдно вводите значения ('*' для выхода в меню):\n";
-				while (i < size)
+				cin >> temp;
+				if (temp == "*")
 				{
-					cin >> temp;
-					if (temp == "*")
-					{
-						delete[] arr;
-						system("cls");
-						ret = true;
-						break;
-					}
-					replace(temp.begin(), temp.end(), ',', '.');
-					istringstream iss(temp);
-					iss >> num;
-					if (iss.fail() || !iss.eof())
-						cout << "Обнаружено некорректное значение. Попробуйте ещё раз!" << endl;
-					else
-					{
-						arr[i] = num;
-						i++;
-					}
+					delete[] arr;
+					system("cls");
+					ret = true;
+					break;
+				}
+				replace(temp.begin(), temp.end(), ',', '.');
+				istringstream iss(temp);
+				iss >> num;
+				if (iss.fail() || !iss.eof())
+				{
+					cout << "Обнаружено некорректное значение - \"" << temp << "\". Повторите попытку ввода этого числа, потом продолжайте!" << endl;
+					cin.ignore(cin.rdbuf()->in_avail());
+				}
+				else
+				{
+					arr[i] = num;
+					i++;
 				}
 			}
 
@@ -160,7 +160,7 @@ int main()
 						temp = _getch();
 					} while (temp != "y" && temp != "n" && temp != "*");
 				}
-				if (temp == "*")
+				if (path == "*" || temp == "*")
 				{
 					ret = true;
 					break;
