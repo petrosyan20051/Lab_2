@@ -60,6 +60,7 @@ int main()
 	
 	do
 	{
+		ret = false;
 		cout << "Выберите действие:\n"
 			<< "1. Создать файл с исходными данными\n"
 			<< "2. Загрузить исходные данные\n"
@@ -68,7 +69,7 @@ int main()
 			<< "5. Завершить работу с программой" << endl;
 		action = _getch();
 
-
+		// 1. Создание файла с исходными данными
 		if (action == '1')
 		{
 			while (true)
@@ -80,7 +81,6 @@ int main()
 				if ((cin.ignore(cin.rdbuf()->in_avail())).peek() == '*')
 				{
 					ret = true;
-					//cin.ignore(cin.rdbuf()->in_avail());
 					break;
 				}
 
@@ -91,14 +91,12 @@ int main()
 						<< "Нажмите любую клавишу для продолжения работы" << endl;
 					_getch();
 					cin.clear();
-					//cin.ignore(cin.rdbuf()->in_avail());
 					continue;
 				}
 				break;
 			}
 			if (ret)
 			{
-				ret = false;
 				system("cls");
 				continue;
 			}
@@ -128,7 +126,6 @@ int main()
 					{
 						delete[] arr;
 						system("cls");
-						//cin.ignore(cin.rdbuf()->in_avail());
 						ret = true;
 						break;
 					}
@@ -136,10 +133,7 @@ int main()
 					istringstream iss(temp);
 					iss >> num;
 					if (iss.fail() || !iss.eof())
-					{
-						//cin.ignore(cin.rdbuf()->in_avail());
 						cout << "Обнаружено некорректное значение. Попробуйте ещё раз!" << endl;
-					}	
 					else
 					{
 						arr[i] = num;
@@ -150,11 +144,9 @@ int main()
 
 			if (ret)
 			{
-				ret = false;
 				system("cls");
 				continue;
 			}
-
 
 			while (true)
 			{
@@ -173,7 +165,7 @@ int main()
 					ret = true;
 					break;
 				}
-				else if (temp == "y")
+				if (temp != "n")
 				{
 					ofstream wr;
 					wr.open(path, ios::binary);
@@ -184,6 +176,12 @@ int main()
 						perror("Системное сообщение об ошибке: ");
 						continue;
 					}
+					size_t buffer[1]; buffer[0] = size;
+
+					wr.write((char*)buffer, sizeof(size_t));
+					wr.write((char*)arr, size * sizeof(elemType));
+					rewrite = true;
+					wr.close();
 					break;
 				}
 				cout << endl;
@@ -191,20 +189,12 @@ int main()
 
 			if (ret)
 			{
-				ret = false;
 				system("cls");
 				continue;
 			}
-
-			size_t buffer[1]; buffer[0] = size;
-
-			wr.write((char*)buffer, sizeof(size_t));
-			wr.write((char*)arr, size * sizeof(elemType));
-			rewrite = true;
-			wr.close();
-
 			system("cls");
 		}
+		// 2. Загружаем данные из существующего файла
 		else if (action == '2')
 		{
 			system("cls");
@@ -230,7 +220,10 @@ int main()
 			}
 
 			if (ret)
+			{
+				system("cls");
 				continue;
+			}
 
 			// count_value - количество значений в последовательности символов
 			size_t count_value[1];
@@ -300,6 +293,7 @@ int main()
 			_getch();
 			system("cls");
 		}
+		// 3. Выводим загруженные данные в консоль
 		else if (action == '3')
 		{
 			system("cls");
@@ -335,6 +329,7 @@ int main()
 			_getch();
 			system("cls");
 		}
+		// 4. Обрабатываем загруженные данные
 		else if (action == '4')
 		{
 			system("cls");
@@ -390,12 +385,14 @@ int main()
 				cout << setw(max_order) << i + 1 << " | " << setw(max_number) << arr[i] << endl;
 			rewrite = true;
 		}
+		// 5. Завершаем работу программы
 		else if (action == '5')
 		{
 			system("cls");
 			exit(0);
 			break;
 		}
+		// Обрабатываем исключение ввода действия
 		else
 		{
 			system("cls");
