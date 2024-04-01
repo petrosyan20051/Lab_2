@@ -57,7 +57,7 @@ int main()
 	elemType* arr = nullptr;
 	int_least16_t size;
 
-	
+
 	do
 	{
 		ret = false;
@@ -70,8 +70,9 @@ int main()
 		action = _getch();
 
 		// 1. Создание файла с исходными данными
-		if (action == '1')
+		switch (action)
 		{
+		case 1:
 			while (true)
 			{
 				system("cls");
@@ -193,10 +194,9 @@ int main()
 				continue;
 			}
 			system("cls");
-		}
-		// 2. Загружаем данные из существующего файла
-		else if (action == '2')
-		{
+
+			// 2. Загружаем данные из существующего файла
+		case '2':
 			system("cls");
 
 			ifstream rd;
@@ -292,10 +292,8 @@ int main()
 			cout << "Введите любую клавишу для продолжения: ";
 			_getch();
 			system("cls");
-		}
-		// 3. Выводим загруженные данные в консоль
-		else if (action == '3')
-		{
+			// 3. Выводим загруженные данные в консоль
+		case '3':
 			system("cls");
 
 			if (arr == nullptr)
@@ -328,10 +326,8 @@ int main()
 			cout << "Введите любую клавишу для продолжения: ";
 			_getch();
 			system("cls");
-		}
-		// 4. Обрабатываем загруженные данные
-		else if (action == '4')
-		{
+			// 4. Обрабатываем загруженные данные
+		case '4':
 			system("cls");
 			if (arr == nullptr)
 			{
@@ -384,21 +380,17 @@ int main()
 			for (size_t i = 0; i < size; i++)
 				cout << setw(max_order) << i + 1 << " | " << setw(max_number) << arr[i] << endl;
 			rewrite = true;
-		}
-		// 5. Завершаем работу программы
-		else if (action == '5')
-		{
+			// 5. Завершаем работу программы
+		case '5':
 			system("cls");
 			exit(0);
 			break;
-		}
-		// Обрабатываем исключение ввода действия
-		else
-		{
+			// Обрабатываем исключение ввода действия
+		default:
 			system("cls");
 			cout << "Введено некорректное значение!\n";
 		}
 	} while (true);
-	
+
 	return 0;
 }
