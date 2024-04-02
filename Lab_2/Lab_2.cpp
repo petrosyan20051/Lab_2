@@ -105,7 +105,10 @@ int main()
 			}
 
 			if (rewrite)
+			{
 				delete[] arr;
+				arr = nullptr;
+			}
 			arr = new (nothrow) elemType[size];
 			if (arr == nullptr)
 			{
@@ -125,6 +128,7 @@ int main()
 				if (cin.peek() == '*' && cin.rdbuf()->in_avail() == 2)
 				{
 					delete[] arr;
+					arr = nullptr;
 					system("cls");
 					ret = true;
 					break;
@@ -169,7 +173,7 @@ int main()
 						temp = _getch();
 					} while (temp != "y" && temp != "n" && temp != "*");
 				}
-				if (temp == "y")
+				if (temp == "y" || !exists(path))
 				{
 					ofstream wr;
 					wr.open(path, ios::binary);
@@ -189,8 +193,6 @@ int main()
 					cin.ignore(cin.rdbuf()->in_avail());
 					break;
 				}
-				else if (temp == "n")
-					cin.ignore(cin.rdbuf()->in_avail());
 				cout << endl;
 			}
 
@@ -219,12 +221,12 @@ int main()
 				cin >> path;
 				// Пытаемся открыть поток
 				rd.open(path, ios::binary);
+				cin.ignore(cin.rdbuf()->in_avail());
 				if (!rd.is_open())
 				{
 					cout << "Не удалось открыть файл! Попробуйте ещё раз." << endl;
 					continue;
 				}
-				cin.ignore(cin.rdbuf()->in_avail());
 				break;
 			}
 
@@ -262,7 +264,10 @@ int main()
 			}
 
 			if (rewrite)
+			{
 				delete[] arr;
+				arr = nullptr;
+			}
 			arr = new elemType[size / sizeof(elemType)];
 			if (arr == nullptr)
 			{
