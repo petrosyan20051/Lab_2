@@ -174,14 +174,15 @@ int main()
 					while (temp != "y" && temp != "n" && temp != "*");
 				}
 
+				effort.close();
 				if (temp == "n")
 				{
+					temp = "again";
 					cin.ignore(cin.rdbuf()->in_avail());
 					endl(cout);
 					continue;
 				}
 
-				effort.close();
 				wr.open(path, ios::binary);
 				if (!wr.is_open())
 				{
