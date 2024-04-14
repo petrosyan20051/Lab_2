@@ -294,9 +294,6 @@ int main()
 			rd.read((char*)arr, size * sizeof(elemType));
 			rd.close();
 
-			system("cls");
-			break;
-
 			// 3. Выводим загруженные данные в консоль
 		case '3':
 			system("cls");
