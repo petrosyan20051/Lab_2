@@ -53,7 +53,7 @@ int main()
 
 	// Динамический массив
 	elemType* arr = nullptr;
-	int_least16_t size = 0, len; // len - длина знаков файла
+	size_t size = 0, len; // len - длина знаков файла
 	
 	// Переменные для вывода полученного в ходе чтения массива или обработанного массива 
 	size_t max_order, max_number; // max_order - длина максимального номера последнего значения (если оно есть)  
@@ -126,12 +126,12 @@ int main()
 			cout << "Поочерёдно вводите значения ('*' для возврата в меню):\n";
 			while (i < size) 
 			{
+				cout << i + 1 << "-ое число: ";
 				if (cin.peek() == '*' && cin.rdbuf()->in_avail() == 2)
 				{
 					ret = true;
 					break;
 				}
-				cout << i << "-ое число: ";
 				cin >> num;
 				if (cin.peek() != '\n')
 				{
@@ -186,24 +186,26 @@ int main()
 						continue;
 					}
 				}				
+				file.close();
 
 				file.open(path, ios::binary | ios::out);
 				if (!file.is_open())
 				{
-					cout << "Не удалось открыть файл - \'" << path << '\'' << endl;/////////////////////////
+					cout << "Не удаoлось открыть файл - \'" << path << '\'' << endl;
 					cout << "Код ошибки: " << _errno() << endl;
 					perror("Описание ошибки: ");
 					endl(cout);
 					continue;
 				}
-				file.write((char*)&size, sizeof(size));//////////// ++++++++
+				file.write((char*)&size, sizeof(size));
 				file.write((char*)arr, size * sizeof(elemType));
-				if (!file.write((char*)&size, sizeof(size)))
+				if (file.fail())
 				{
 					file.close();
-					cout << "Не удалось записать данные!";
+					cout << "Не удалось записать данные!" << endl;
 					continue;
 				}
+
 				file.close();
 				break;
 			}
