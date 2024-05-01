@@ -43,25 +43,25 @@ int main()
 
 	// Тип данных для вводимых в последовательность значений
 	typedef double elemType;
+	typedef size_t control;
 
 	// Переменные для алгоритма перемещения по меню и работы с вводом имени файла
 	char action;
 	string temp, path;
 	bool ret = false; // ret = "return" - флаг для возврата в начало меню
 	elemType num;
-	uint_least16_t i = 0;
+	size_t i = 0;
 
 	// Динамический массив
 	elemType* arr = nullptr;
-	size_t size = 0, len; // len - длина знаков файла
+	control size = 0; 
 	
 	// Переменные для вывода полученного в ходе чтения массива или обработанного массива 
 	size_t max_order, max_number; // max_order - длина максимального номера последнего значения (если оно есть)  
 								  // max_number - максимальная длина среди всех значений массив
 
-	// Переменные для заботы с файловым потоком ввода и вывода соответственно
+	// Переменные для работы с файловым потоком ввода и вывода соответственно
 	fstream file;
-	
 
 	do
 	{
@@ -79,11 +79,12 @@ int main()
 
 		// 1. Создание файла с исходными данными
 		case '1':
-			while (true) /////////////////////////// +++++++++++++
+			while (true)
 			{
 				system("cls");
 
 				long long int size_default;
+				cin.ignore(cin.rdbuf()->in_avail());
 				cout << "Введите количество значений, которые вы хотите записать ('*' для возврата в меню): ";
 				if (cin.peek() == '*' && cin.rdbuf()->in_avail() == 2)
 				{
@@ -98,7 +99,6 @@ int main()
 						<< "Нажмите любую клавишу для продолжения работы" << endl;
 					_getch();
 					cin.clear();
-					cin.ignore(cin.rdbuf()->in_avail());
 					continue;
 				}
 
@@ -122,10 +122,10 @@ int main()
 
 			i = 0;
 
-			cin.ignore(cin.rdbuf()->in_avail());
 			cout << "Поочерёдно вводите значения ('*' для возврата в меню):\n";
 			while (i < size) 
 			{
+				cin.ignore(cin.rdbuf()->in_avail());
 				cout << i + 1 << "-ое число: ";
 				if (cin.peek() == '*' && cin.rdbuf()->in_avail() == 2)
 				{
@@ -137,7 +137,6 @@ int main()
 				{
 					cout << "Повторите попытку ввода этого числа, потом продолжайте!" << endl;
 					cin.clear();
-					cin.ignore(cin.rdbuf()->in_avail());
 					continue;
 				}
 				arr[i] = num;
@@ -153,9 +152,9 @@ int main()
 			}
 
 			// Предварительная очистка буфера потока ввода перед запросом имени файла
-			cin.ignore(cin.rdbuf()->in_avail());
 			while (true)
 			{
+				cin.ignore(cin.rdbuf()->in_avail());
 				cout << "Введите название двоичного файла ('*' для возврата в меню): ";
 				if (cin.peek() == '*' && cin.rdbuf()->in_avail() == 2)
 				{
@@ -164,7 +163,7 @@ int main()
 				}
 				getline(cin, path);
 
-				file.open(path, ios::in);
+				file.open(path, ios::in | ios::binary);
 				if (file.is_open())
 				{
 					cout << "Файл уже существует! Желаете его перезаписать ('y' - да, 'n' - нет, '*' - возврат в меню): ";
@@ -173,15 +172,11 @@ int main()
 					while (temp != "y" && temp != "n" && temp != "*");
 
 					if (temp == "*")
-					{
-						file.close();
 						break;
-					}
 					
 					if (temp == "n")
 					{
 						file.close();
-						cin.ignore(cin.rdbuf()->in_avail());
 						endl(cout);
 						continue;
 					}
@@ -191,7 +186,8 @@ int main()
 				file.open(path, ios::binary | ios::out);
 				if (!file.is_open())
 				{
-					cout << "Не удаoлось открыть файл - \'" << path << '\'' << endl;
+					file.close();
+					cout << "Не удалось открыть файл - \'" << path << '\'' << endl;
 					cout << "Код ошибки: " << _errno() << endl;
 					perror("Описание ошибки: ");
 					endl(cout);
@@ -202,14 +198,16 @@ int main()
 				if (file.fail())
 				{
 					file.close();
-					cout << "Не удалось записать данные!" << endl;
+					cout << "Не удалось записать данные!" << endl
+						<< "Нажмите любую клавишу для продолжения!";
+					_getch();
+					system("cls");
 					continue;
 				}
-
-				file.close();
 				break;
 			}
-		
+
+			file.close();
 			system("cls");
 			continue;
 
@@ -219,64 +217,61 @@ int main()
 			do
 			{
 				cout << "Введите название двоичного файла ('*' для возврата в меню): ";
-				while (true)
+				cin.ignore(cin.rdbuf()->in_avail());
+				if (cin.peek() == '*' && cin.rdbuf()->in_avail() == 2)
 				{
-					cin.ignore(cin.rdbuf()->in_avail());
-					if (cin.peek() == '*' && cin.rdbuf()->in_avail() == 2)
-					{
-						ret = true;
-						break;
-					}
-					getline(cin, path);
-
-					// Пытаемся открыть поток
-					file.open(path, ios::binary | ios::in);
-					if (!file.is_open())
-					{
-						cout << "Не удалось открыть файл - \'" << path << '\'' << endl;
-						continue;
-					}
+					ret = true;
 					break;
 				}
+				getline(cin, path);
 
-				if (ret)
+				// Пытаемся открыть поток
+				file.open(path, ios::binary | ios::in | ios::ate);
+				if (!file.is_open())
 				{
-					system("cls");
-					break;
-				}
-
-				// Проверяем файл на пустоту - содержит единственное значение - количество элементов массива = 0
-				file.read((char*)&size, sizeof(size));/////////// +++++++
-				if (!size)
-				{
-					file.close();
-					cout << "Файл пуст!" << endl;
+					cout << "Не удалось открыть файл - \'" << path << '\'' << endl;
 					continue;
 				}
 
-				// Находим длину последовательности двоичных символов;
-				file.seekg(0, ios::end);
-				len = file.tellg();
+				///////////////////////////////////////////// Не понятно, для чего вводить дополнительный флаг и, если действительно надо, то как это реализовать
 
-				// Обновляем её для самой простой проверки кратности последовательности двоичных символов на длину типа данных и проверки совпадения фактического количества значений и указанного в файле
-				len -= sizeof(len);
-				len %= sizeof(elemType);
-				file.seekg(sizeof(size));
-
-				if (len)
+				// Получаем размер файла
+				control size_default = file.tellg();
+				if (!size_default)
 				{
 					file.close();
-					cout << "Файл повреждён!" << '\n'
-						<< "Нажмите любую клавишу для продолжения: " << endl;
-					_getch();
-					break;/////////////////////
+					cout << "Файл пуст!" << endl;
+					continue; 
 				}
+
+				// Проверяем, достаточен ли размер файла для того, чтобы из него можно было считать хотя бы контрольное значение (кол-во элементов)
+				if (size_default < sizeof(size))
+				{
+					file.close();
+					cout << "Файл повреждён! (контрольное значение)" << endl;
+					continue;
+				}
+				size_default -= sizeof(size);
+
+				// Проверяем, что размер части содержимого файла, занимаемой самой последовательностью, кратен размеру 1 элемента
+				if (size_default % sizeof(elemType))
+				{
+					file.close();
+					cout << "Файл повреждён! (размер части файла, занимаемой последовательностью)" << endl;
+					continue;
+				}
+				size_default /= sizeof(elemType);
+
+				// Считываем из файла в соответствующую переменную контрольное значение
+				file.seekg(0);
+				file.read((char*)&size_default, sizeof(size_default));
+				size = size_default;
 
 				try
 				{
 					arr = new elemType[size];
 				}
-				catch (bad_alloc)
+				catch (...)
 				{
 					file.close();
 					cout << "Ошибка выделения памяти!\n"
@@ -350,7 +345,7 @@ int main()
 					s = 0,
 					avg;
 			
-			// Ищем максимальное и минимальное число и сумму все последовательности массива
+			// Ищем максимальное и минимальное число и сумму всей последовательности массива
 			for (size_t i = 0; i < size; i++)
 			{
 				if (arr[i] > mx) mx = arr[i];
@@ -359,16 +354,25 @@ int main()
 			}
 
 			avg = s / size;
-			cout << "Файл содержит " << size << " значений(-ия, -ие)\n"
-				<< "Максимальное значение = " << mx << '\n'
-				<< "Минимальное значение = " << mn << '\n'
+			cout << "Файл содержит " << size << " значений(-ия, -ие)" << endl
+				<< "Максимальное значение = " << mx << endl
+				<< "Минимальное значение = " << mn << endl
 				<< "Среднее арифметическое ряда = " << avg << endl;
 
+			elemType* result = new (nothrow) elemType[size];
+			if (!result)
+			{
+				cout << "Произошла ошибка выделения памяти под массив обработанной последовательности!";
+				continue;
+			}
+
+
 			// Заменяем Pmax и Pmin на avg
+			for (size_t i = 0; i < size; result[i] = arr[i], i++)
 			for (size_t i = 0; i < size; i++)
 			{
-				if (arr[i] == mx) arr[i] = avg;
-				if (arr[i] == mn) arr[i] = avg;
+				if (arr[i] == mx) result[i] = avg;
+				if (arr[i] == mn) result[i] = avg;
 			}
 
 			// Находим: 1. Максимальную длину между наибольшим порядковым номером числа и строки "Номер" (5)
@@ -379,7 +383,7 @@ int main()
 			for (size_t i = 0; i < size; i++)
 			{
 				ostringstream oss;
-				oss << arr[i];
+				oss << result[i];
 				size_t len = oss.tellp();
 				if (len > max_number) max_number = len;
 			}
@@ -387,7 +391,8 @@ int main()
 			// Выводим массив значений
 			cout << setw(max_order) << "Номер" << " | " << setw(max_number) << "Значение" << endl;
 			for (size_t i = 0; i < size; i++)
-				cout << setw(max_order) << i + 1 << " | " << setw(max_number) << arr[i] << endl;
+				cout << setw(max_order) << i + 1 << " | " << setw(max_number) << result[i] << endl;
+			delete[] result;
 			break;
 			}
 			// 5. Завершаем работу программы
