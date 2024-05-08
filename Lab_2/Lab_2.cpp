@@ -166,28 +166,29 @@ int main()
 				file.open(path, ios::in | ios::binary);
 				if (file.is_open())
 				{
-					cout << "Файл уже существует! Желаете его перезаписать ('y' - да, 'n' - нет, '*' - возврат в меню): ";
+					file.close();
+					cout << "Файл уже существует! Желаете его перезаписать ('y' - да, 'n' - нет, '*' - возврат в меню): ";/////////////////////
 					do
 						temp = _getch();
 					while (temp != "y" && temp != "n" && temp != "*");
 
 					if (temp == "*")
+					{
+						ret = true;
 						break;
+					}
 					
 					if (temp == "n")
 					{
-						file.close();
 						endl(cout);
 						continue;
 					}
 				}				
-				file.close();
 
 				file.open(path, ios::binary | ios::out);
 				if (!file.is_open())
 				{
-					file.close();
-					cout << "Не удалось открыть файл - \'" << path << '\'' << endl;
+					cout << "Не удалось открыть файл - \"" << path << '"' << endl;
 					cout << "Код ошибки: " << _errno() << endl;
 					perror("Описание ошибки: ");
 					endl(cout);
@@ -198,16 +199,17 @@ int main()
 				if (file.fail())
 				{
 					file.close();
+					remove(path.c_str());
 					cout << "Не удалось записать данные!" << endl
 						<< "Нажмите любую клавишу для продолжения!";
 					_getch();
 					system("cls");
 					continue;
 				}
+				file.close();
 				break;
 			}
 
-			file.close();
 			system("cls");
 			continue;
 
@@ -229,11 +231,9 @@ int main()
 				file.open(path, ios::binary | ios::in | ios::ate);
 				if (!file.is_open())
 				{
-					cout << "Не удалось открыть файл - \'" << path << '\'' << endl;
+					cout << "Не удалось открыть файл - \"" << path << '"' << endl;
 					continue;
 				}
-
-				///////////////////////////////////////////// Не понятно, для чего вводить дополнительный флаг и, если действительно нужна, то как это реализовать
 
 				// Получаем размер файла
 				control size_default = file.tellg();
@@ -264,9 +264,15 @@ int main()
 
 				// Считываем из файла в соответствующую переменную контрольное значение
 				file.seekg(0);
-				file.read((char*)&size_default, sizeof(size_default));
-				size = size_default;
+				file.read((char*)&size, sizeof(size_default));
+				if (size_default != size)
+				{
+					file.close();
+					cout << "Файл повреждён! (вычисленное контрольное значение не совпадает с фактическим)";
+					continue;
+				}
 
+				/////////////////////////////////////////////// 2 - утечка памяти
 				try
 				{
 					arr = new elemType[size];
@@ -274,6 +280,7 @@ int main()
 				catch (...)
 				{
 					file.close();
+					arr = nullptr;
 					cout << "Ошибка выделения памяти!\n"
 						<< "Нажмите любую клавишу для продолжения: " << endl;
 					_getch();
@@ -345,68 +352,66 @@ int main()
 					s = 0,
 					avg;
 			
-			// Ищем максимальное и минимальное число и сумму всей последовательности массива
-			for (size_t i = 0; i < size; i++)
-			{
-				if (arr[i] > mx) mx = arr[i];
-				if (arr[i] < mn) mn = arr[i];
-				s += arr[i];
-			}
+				// Ищем максимальное и минимальное число и сумму всей последовательности массива
+				for (size_t i = 0; i < size; i++)
+				{
+					if (arr[i] > mx) mx = arr[i];
+					if (arr[i] < mn) mn = arr[i];
+					s += arr[i];
+				}
 
-			avg = s / size;
-			cout << "Файл содержит " << size << " значений(-ия, -ие)" << endl
-				<< "Максимальное значение = " << mx << endl
-				<< "Минимальное значение = " << mn << endl
-				<< "Среднее арифметическое ряда = " << avg << endl;
+				avg = s / size;
+				cout << "Файл содержит " << size << " значений(-ия, -ие)" << endl
+					<< "Максимальное значение = " << mx << endl
+					<< "Минимальное значение = " << mn << endl
+					<< "Среднее арифметическое ряда = " << avg << endl;
 
-			elemType* result = new (nothrow) elemType[size];
-			if (!result)
-			{
-				cout << "Произошла ошибка выделения памяти под массив обработанной последовательности!";
-				continue;
-			}
+				elemType* result = new (nothrow) elemType[size];
+				if (!result)
+				{
+					cout << "Произошла ошибка выделения памяти под массив обработанной последовательности!";
+					continue;
+				}
 
 
-			// Заменяем Pmax и Pmin на avg
-			for (size_t i = 0; i < size; result[i] = arr[i], i++)
-			for (size_t i = 0; i < size; i++)
-			{
-				if (arr[i] == mx) result[i] = avg;
-				if (arr[i] == mn) result[i] = avg;
-			}
+				// Заменяем Pmax и Pmin на avg
+				for (size_t i = 0; i < size; result[i] = arr[i], i++)
+				for (size_t i = 0; i < size; i++)
+				{
+					if (arr[i] == mx) result[i] = avg;
+					if (arr[i] == mn) result[i] = avg;
+				}
 
-			// Находим: 1. Максимальную длину между наибольшим порядковым номером числа и строки "Номер" (5)
-			//			2. Максимальную длину прочитанных значений
-			max_order = max(to_string(size).length(), 5),
-			max_number = 8;
+				// Находим: 1. Максимальную длину между наибольшим порядковым номером числа и строки "Номер" (5)
+				//			2. Максимальную длину прочитанных значений
+				max_order = max(to_string(size).length(), 5),
+				max_number = 8;
 
-			for (size_t i = 0; i < size; i++)
-			{
-				ostringstream oss;
-				oss << result[i];
-				size_t len = oss.tellp();
-				if (len > max_number) max_number = len;
-			}
+				for (size_t i = 0; i < size; i++)
+				{
+					ostringstream oss;
+					oss << result[i];
+					size_t len = oss.tellp();
+					if (len > max_number) max_number = len;
+				}
 
-			// Выводим массив значений
-			cout << setw(max_order) << "Номер" << " | " << setw(max_number) << "Значение" << endl;
-			for (size_t i = 0; i < size; i++)
-				cout << setw(max_order) << i + 1 << " | " << setw(max_number) << result[i] << endl;
-			delete[] result;
-			break;
+				// Выводим массив значений
+				cout << setw(max_order) << "Номер" << " | " << setw(max_number) << "Значение" << endl;
+				for (size_t i = 0; i < size; i++)
+					cout << setw(max_order) << i + 1 << " | " << setw(max_number) << result[i] << endl;
+				delete[] result;
+				break;
 			}
 			// 5. Завершаем работу программы
 		case '5':
 			system("cls");
-			delete[] arr;
+			delete[] arr;//////////////
 			exit(0);
-			break;
 
 			// Обрабатываем исключение ввода действия, не удовлетворяющего меню
 		default:
 			system("cls");
 			cout << "Введено некорректное значение!\n";
-			break;
 		}
 
 	} while (true);
